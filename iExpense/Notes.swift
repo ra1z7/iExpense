@@ -40,6 +40,40 @@ struct UsingStateWithClass: View {
 // When working with structs, the @State property wrapper keeps a value alive and also watches it for changes.
 // On the other hand, when working with classes, @State is just there for keeping object alive – all the watching for changes and updating the view is taken care of by @Observable.
 
+
+
+
+// Sheets work much like alerts, in that we don’t present them directly with code such as mySheet.present() or similar. Instead, we define the conditions under which a sheet should be shown, and when those conditions become true or false the sheet will either be presented or dismissed respectively.
+struct SecondView: View {
+    @Environment(\.dismiss) var dismiss
+    // @Environment is a property wrapper, which allows a view to read values provided by the system or parent views. Think of it like a “shared bag of values” passed down the view hierarchy (things like color scheme, locale, dismiss action, etc.)
+    // \.dismiss is a key path to the system-provided “dismiss action”. This action tells SwiftUI how to dismiss the current view if it was presented modally (e.g., using .sheet, .fullScreenCover, or a navigation stack). So, we’re effectively saying “hey, figure out how my view was presented, then dismiss it appropriately.”
+    // SwiftUI automatically fills the 'dismiss' property with the correct value from the environment. The type of dismiss is actually DismissAction (a special type provided by SwiftUI).
+    
+    let userName: String
+    
+    var body: some View {
+        Text("Hello, \(userName)")
+        
+        Button("Dismiss") {
+            dismiss()
+        }
+    }
+}
+
+struct ShowingHidingViewsWithSheet: View {
+    @State private var showingSheet = false
+    
+    var body: some View {
+        Button("Show Sheet") {
+            showingSheet = true
+        }
+        .sheet(isPresented: $showingSheet) {
+            SecondView(userName: "@ra1z")
+        }
+    }
+}
+
 #Preview {
-    UsingStateWithClass()
+    ShowingHidingViewsWithSheet()
 }
