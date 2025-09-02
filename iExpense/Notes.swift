@@ -105,6 +105,40 @@ struct DeleteItemsFromList: View {
     }
 }
 
+
+
+// UserDefaults is a key-value storage system.
+// UserDefaults will automatically be loaded when your app launches – if you store a lot in there your app launch will slow down. To give you at least an idea, you should aim to store no more than 512KB in there.
+// Using UserDefaults takes iOS a little time to write your data to permanent storage. They don’t write updates immediately because you might make several changes back to back, so instead they wait some time then write out all the changes at once.
+struct StoringUserDataUsingUserDefaults: View {
+    @State private var tapCount = UserDefaults.standard.integer(forKey: "tapCount") // if the app is run for the first time and the key can’t be found, it just sends back 0.
+    
+    var body: some View {
+        Button("Tap Count: \(tapCount)") {
+            tapCount += 1
+            UserDefaults.standard.set(tapCount, forKey: "tapCount")
+            
+            // We need to use UserDefaults.standard which is the built-in instance of UserDefaults that is attached to our app, but in more advanced apps you can create your own instances. For example, if you want to share defaults across several app extensions, you might create your own UserDefaults instance.
+        }
+    }
+}
+
+// SwiftUI can often wrap up UserDefaults inside a nice and simple property wrapper called @AppStorage (preferred)
+struct StoringUserDataUsingAppStorage: View {
+    @AppStorage("tapCount") private var tapCount = 0 // This works like @State: when the value changes, it will reinvoke the body property so our UI reflects the new data.
+    // "tapCount" is the UserDefaults key where we want to store the data
+    // providing a default value of 0 will be used if there is no existing value saved inside UserDefaults.
+    
+    var body: some View {
+        Button("Tap Count: \(tapCount)") {
+            tapCount += 1
+        }
+    }
+}
+// @AppStorage doesn’t make it easy to handle storing complex objects such as Swift structs – perhaps because Apple wants us to remember that storing lots of data in there is a bad idea!
+
+// IMPORTANT: When it comes to you submitting an app to the App Store, Apple asks that you let them know why you're loading and saving data using UserDefaults. This also applies to the @AppStorage property wrapper. It's nothing to worry about, they just want to make sure developers aren't trying to identify users across apps.
+
 #Preview {
-    DeleteItemsFromList()
+    StoringUserDataUsingAppStorage()
 }
