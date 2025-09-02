@@ -23,11 +23,9 @@ class User {
 
 struct UsingStateWithClass: View {
     @State private var user = User()
-    // Behind the scenes, each time a value inside our struct changes, the whole struct changes
+    // Behind the scenes (When User is a struct), each time a value inside our struct changes, the whole struct changes
     
-    // Remember how we had to use the 'mutating' keyword for struct methods that modify properties? This is because if we create the struct’s properties as variable but the struct itself is constant, we can’t change the properties – Swift needs to be able to destroy and recreate the whole struct when a property changes, and that isn’t possible for constant structs. Classes don’t need the mutating keyword, because even if the class instance is marked as constant Swift can still modify variable properties.
-    
-    // So, when User is a class, the 'user' property itself isn’t changing, however it’s still pointing to the exact same User object so, @State doesn’t notice anything and can’t reload the view.
+    // However, when User is a class, the 'user' property itself isn’t changing, but it’s still pointing to the exact same User object so, @State doesn’t notice anything and can’t reload the view.
     
     // To fix it, we must use @Observable before class which tells SwiftUI: “Don’t just watch the property. Also track the internal changes of this object. Reload any view that relies on a property when it changes.”
 
@@ -39,13 +37,8 @@ struct UsingStateWithClass: View {
     }
 }
 
-// When working with structs, the @State property wrapper keeps a value alive and also watches it for changes. On the other hand, when working with classes, @State is just there for keeping object alive – all the watching for changes and updating the view is taken care of by @Observable.
-
-// Summary
-// Struct + @State -> @State handles storage + change detection.
-// Class + @State -> @State only handles storage; no change detection.
-// Class + @Observable (+ @State) -> @State stores the object, @Observable handles change detection.
-
+// When working with structs, the @State property wrapper keeps a value alive and also watches it for changes.
+// On the other hand, when working with classes, @State is just there for keeping object alive – all the watching for changes and updating the view is taken care of by @Observable.
 
 #Preview {
     UsingStateWithClass()
