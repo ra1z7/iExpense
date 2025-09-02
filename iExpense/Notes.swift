@@ -139,6 +139,45 @@ struct StoringUserDataUsingAppStorage: View {
 
 // IMPORTANT: When it comes to you submitting an app to the App Store, Apple asks that you let them know why you're loading and saving data using UserDefaults. This also applies to the @AppStorage property wrapper. It's nothing to worry about, they just want to make sure developers aren't trying to identify users across apps.
 
+
+
+
+// @AppStorage is great for storing simple settings such as integers and booleans, but when it comes to complex data – custom Swift types, for example – we need to poke around directly with UserDefaults itself, rather than going through the @AppStorage property wrapper.
+// Since UserDefaults can’t directly store User, we use Codable + JSONEncoder
+// We want to archive this custom type, so we can put it into UserDefaults, then unarchive it when it comes back out from UserDefaults.
+// When working with a custom type that only has simple properties like strings, integers, booleans, arrays of strings, and so on – the only thing we need to do to support archiving and unarchiving is add a conformance to Codable
+struct Student: Codable { // Codable is a protocol specifically for archiving and unarchiving data - “converting objects into plain text and back again.”
+    let firstName: String
+    let lastName: String
+}
+
+
+struct EncodingData: View {
+    @State private var student = Student(firstName: "Purnaman", lastName: "Rai")
+    
+    var body: some View {
+        Button("Save Student") {
+            let jsonEncoder = JSONEncoder() // its job is to take something that conforms to Codable and send back that object in JavaScript Object Notation (JSON)
+            jsonEncoder.outputFormatting = .prettyPrinted  // makes JSON readable
+            
+            if let jsonData = try? jsonEncoder.encode(student) {
+                UserDefaults.standard.set(jsonData, forKey: "StudentData")
+                
+                print(String(data: jsonData, encoding: .utf8)!)
+            }
+            // the type of 'jsonData' is Data - designed to store any kind of data you can think of, such as strings, images, zip files, and more.
+        }
+        
+        Button("Print Name") {
+            if let savedStudent = UserDefaults.standard.data(forKey: "StudentData") {
+                if let loadedUser = try? JSONDecoder().decode(Student.self, from: savedStudent) {
+                    print(loadedUser.firstName)
+                }
+            }
+        }
+    }
+}
+
 #Preview {
-    StoringUserDataUsingAppStorage()
+    EncodingData()
 }
