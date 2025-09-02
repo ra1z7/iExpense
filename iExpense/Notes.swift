@@ -74,6 +74,37 @@ struct ShowingHidingViewsWithSheet: View {
     }
 }
 
+
+
+
+struct DeleteItemsFromList: View {
+    @State private var allNumbers = [Int]()
+    @State private var currentNumber = 1
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Button("Add Number") {
+                    allNumbers.append(currentNumber)
+                    currentNumber += 1
+                }
+                
+                ForEach(allNumbers, id: \.self) {
+                    Text("Row \($0)")
+                }
+                .onDelete { offsets in
+                    allNumbers.remove(atOffsets: offsets)
+                }
+                
+                // In order to make onDelete() work, we need to implement a method that will receive a single parameter of type IndexSet. This is a bit like a set of integers, except it’s sorted, and it’s just telling us the positions of all the items in the ForEach that should be removed.
+            }
+            .toolbar {
+                EditButton()
+            }
+        }
+    }
+}
+
 #Preview {
-    ShowingHidingViewsWithSheet()
+    DeleteItemsFromList()
 }
