@@ -178,6 +178,43 @@ struct EncodingData: View {
     }
 }
 
+
+
+
+// When we create static views in SwiftUI – when we hard-code a VStack, then a TextField, then a Button, and so on – SwiftUI can see exactly which views we have, and is able to control them, animate them, and more. But when we use List or ForEach to make dynamic views, SwiftUI needs to know how it can identify each item uniquely otherwise it will struggle to compare view hierarchies to figure out what has changed.
+//struct Product: Identifiable // SOLUTION
+struct Product {
+//    let id = UUID() // SOLUTION
+    let name: String
+    let price: Double
+}
+
+struct IdentifiableDemo: View {
+    @State private var products = [Product]()
+    
+    var body: some View {
+        List {
+            Button("Add Test Product") {
+                products.append(Product(name: "Test", price: 3.99))
+            }
+            // AFTER SOLUTION: our products are now guaranteed to be identifiable uniquely, we no longer need to tell ForEach which property to use for the identifier – it knows there will be an 'id' property and that it will be unique, because that’s the point of the 'Identifiable' protocol.
+//            ForEach(products) { product in // AFTER SOLUTION
+            ForEach(products, id: \.name) { product in
+                Text(product.name)
+            }
+            .onDelete { offsets in
+                products.remove(atOffsets: offsets)
+            }
+        }
+    }
+}
+
+// PROBLEM: Every time we create a test product we’re using the name “Test”, but we’ve also told SwiftUI that it can use the product name (\.name) as a unique identifier. So, when our code runs and we delete an item, SwiftUI looks at the array beforehand – “Test”, “Test”, “Test”, “Test” – then looks at the array afterwards – “Test”, “Test”, “Test” – and can’t easily tell what changed. Something has changed, because one item has disappeared, but SwiftUI can’t be sure which.
+
+// In this situation we’re lucky, because List knows exactly which row we were swiping on, but in many other places that extra information won’t be available and our app will start to behave strangely.
+
+// This is a logic error on our behalf: our code is fine, and it doesn’t crash at runtime, but we’ve applied the wrong logic to get to that end result – we’ve told SwiftUI that something will be a unique identifier, when it isn’t unique at all.
+
 #Preview {
-    EncodingData()
+    IdentifiableDemo()
 }
