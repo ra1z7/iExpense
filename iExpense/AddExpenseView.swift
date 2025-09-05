@@ -14,6 +14,8 @@ struct AddExpenseView: View {
     @State private var expenseType = "Personal"
     @State private var expenseAmount = 0.0
     
+    @Environment(\.dismiss) var dismiss // We don't need to specify its type, because we have used @Environment property wrapper
+    
     let expenseTypes = ["Personal", "Business"]
     
     var body: some View {
@@ -34,6 +36,7 @@ struct AddExpenseView: View {
             .toolbar {
                 Button("Save") {
                     expenses.items.append(ExpenseItem(name: expenseName, type: expenseType, amount: expenseAmount))
+                    dismiss() // This causes the showingAddExpense Boolean in ContentView to go back to false
                 }
             }
         }
