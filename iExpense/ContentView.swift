@@ -17,7 +17,7 @@ struct ExpenseItem: Codable, Identifiable {
 
 @Observable
 class Expenses { // we can make this class load and save itself seamlessly later
-    var items = [ExpenseItem]() {
+    var items: [ExpenseItem] {
         didSet {
             if let encodedData = try? JSONEncoder().encode(items) {
                 UserDefaults.standard.set(encodedData, forKey: "Items")
@@ -36,7 +36,6 @@ class Expenses { // we can make this class load and save itself seamlessly later
         items = []
     }
 }
-
 // now we have a struct to represent a single item of expense, and a class to store an array of all those items.
 
 struct ContentView: View {
@@ -46,30 +45,20 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(expenses.items) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.name)
-                                .font(.headline)
-                            Text(item.type)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                            .foregroundStyle(item.amount < 100 ? Color.orange : (item.amount < 1000 ? Color.blue : Color.red))
-                            .font(.body.bold())
+                if expenses.items.count > 0 {
+                    if expensesHasType("Personal") {
+                        expenseListView(for: "Personal")
                     }
-                    .listRowBackground(item.amount < 100 ? Color.orange.opacity(0.05) : (item.amount < 1000 ? Color.blue.opacity(0.05) : Color.red.opacity(0.05)))
+                    if expensesHasType("Business") {
+                        expenseListView(for: "Business")
+                    }
+                } else {
+                    ContentUnavailableView("No Expenses Yet", systemImage: "text.page.slash", description: Text("Press '+' to add new expenses."))
                 }
-                .onDelete(perform: removeItems)
             }
             .navigationTitle("iExpense")
             .toolbar {
                 Button("Add Expense", systemImage: "plus") {
-//                    expenses.items.append(ExpenseItem(name: "Test", type: "Personal", amount: 5.99))
                     showingAddExpenseView = true
                 }
             }
@@ -79,8 +68,57 @@ struct ContentView: View {
         }
     }
     
+    func expensesHasType(_ expenseType: String) -> Bool {
+        for expense in expenses.items {
+            if expense.type == expenseType {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    func expenseListView(for expenseType: String) -> some View {
+        Section(expenseType) {
+            ForEach(expenses.items) { expense in
+                if expense.type == expenseType {
+                    HStack {
+                        Text(expense.name)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Text(expense.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                            .foregroundStyle(getColor(for: expense.amount))
+                            .font(.body.bold())
+                    }
+                    .listRowBackground(getColor(for: expense.amount, asBackground: true))
+                }
+            }
+            .onDelete(perform: removeItems)
+        }
+    }
+    
     func removeItems(at offsets: IndexSet) {
         expenses.items.remove(atOffsets: offsets)
+    }
+    
+    func getColor(for expenseAmount: Double, asBackground: Bool = false) -> Color {
+        var color: Color
+        
+        if expenseAmount <= 100 {
+            color = .blue
+        } else if expenseAmount <= 1000 {
+            color = .orange
+        } else {
+            color = .red
+        }
+        
+        if asBackground {
+            color = color.opacity(0.05)
+        }
+        
+        return color
     }
 }
 
