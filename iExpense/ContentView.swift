@@ -40,7 +40,6 @@ class Expenses { // we can make this class load and save itself seamlessly later
 
 struct ContentView: View {
     @State private var expenses = Expenses()
-    @State private var showingAddExpenseView = false
     
     var body: some View {
         NavigationStack {
@@ -58,12 +57,11 @@ struct ContentView: View {
             }
             .navigationTitle("iExpense")
             .toolbar {
-                Button("Add Expense", systemImage: "plus") {
-                    showingAddExpenseView = true
+                NavigationLink {
+                    AddExpenseView(expenses: expenses)
+                } label: {
+                    Label("Add New Expense", systemImage: "plus")
                 }
-            }
-            .sheet(isPresented: $showingAddExpenseView) {
-                AddExpenseView(expenses: expenses)
             }
         }
     }

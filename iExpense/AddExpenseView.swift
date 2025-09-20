@@ -33,10 +33,20 @@ struct AddExpenseView: View {
                     .keyboardType(.decimalPad)
             }
             .navigationTitle("Add New Expense")
+            .navigationBarBackButtonHidden()
             .toolbar {
-                Button("Save") {
-                    expenses.items.append(ExpenseItem(name: expenseName, type: expenseType, amount: expenseAmount))
-                    dismiss() // This causes the showingAddExpense Boolean in ContentView to go back to false
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        expenses.items.append(ExpenseItem(name: expenseName, type: expenseType, amount: expenseAmount))
+                        dismiss() // This causes the showingAddExpense Boolean in ContentView to go back to false
+                    }
+                    .disabled(expenseName.isEmpty || expenseAmount <= 0)
                 }
             }
         }
