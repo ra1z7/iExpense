@@ -10,7 +10,7 @@ import SwiftUI
 struct AddExpenseView: View {
     var expenses: Expenses
     
-    @State private var expenseName = ""
+    @State private var expenseName = "New Expense"
     @State private var expenseType = "Personal"
     @State private var expenseAmount = 0.0
     
@@ -20,9 +20,7 @@ struct AddExpenseView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                TextField("Name", text: $expenseName)
-                
+            Form {                
                 Picker("Type", selection: $expenseType) {
                     ForEach(expenseTypes, id: \.self) {
                         Text($0)
@@ -32,7 +30,8 @@ struct AddExpenseView: View {
                 TextField("Amount", value: $expenseAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     .keyboardType(.decimalPad)
             }
-            .navigationTitle("Add New Expense")
+            .navigationTitle($expenseName)
+            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -46,7 +45,7 @@ struct AddExpenseView: View {
                         expenses.items.append(ExpenseItem(name: expenseName, type: expenseType, amount: expenseAmount))
                         dismiss() // This causes the showingAddExpense Boolean in ContentView to go back to false
                     }
-                    .disabled(expenseName.isEmpty || expenseAmount <= 0)
+                    .disabled(expenseName == "New Expense" || expenseAmount <= 0)
                 }
             }
         }
