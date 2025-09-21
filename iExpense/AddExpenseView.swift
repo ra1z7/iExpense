@@ -10,9 +10,11 @@ import SwiftUI
 struct AddExpenseView: View {
     var expenses: Expenses
     
-    @State private var expenseName = "New Expense"
+    @State private var expenseName = ""
     @State private var expenseType = "Personal"
     @State private var expenseAmount = 0.0
+    
+    @State private var stepMode = "Add"
     
     @Environment(\.dismiss) var dismiss // We don't need to specify its type, because we have used @Environment property wrapper
     
@@ -20,7 +22,9 @@ struct AddExpenseView: View {
     
     var body: some View {
         NavigationStack {
-            Form {                
+            Form {
+                TextField("Name", text: $expenseName)
+                
                 Picker("Type", selection: $expenseType) {
                     ForEach(expenseTypes, id: \.self) {
                         Text($0)
@@ -29,8 +33,40 @@ struct AddExpenseView: View {
                 
                 TextField("Amount", value: $expenseAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     .keyboardType(.decimalPad)
+                
+                VStack {
+                    Picker("Step Mode", selection: $stepMode) {
+                        ForEach(["Add", "Subtract"], id: \.self) {
+                            Text($0)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    HStack(spacing: 5) {
+                        ForEach([1, 10, 100], id: \.self) { stepSize in
+                            Button {
+                                if stepMode == "Add" {
+                                    expenseAmount += stepSize
+                                } else {
+                                    if expenseAmount >= stepSize {
+                                        expenseAmount -= stepSize
+                                    } else {
+                                        expenseAmount = 0.0
+                                    }
+                                }
+                            } label: {
+                                Text("\(stepMode == "Add" ? "+" : "-")\(stepSize.formatted(.number.grouping(.never)))")
+                                    .font(.subheadline)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(stepMode == "Add" ? .blue : .red)
+                            .buttonRepeatBehavior(.enabled)
+                        }
+                    }
+                }
             }
-            .navigationTitle($expenseName)
+            .navigationTitle("Add New Expense")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
             .toolbar {
