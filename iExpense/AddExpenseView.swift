@@ -8,14 +8,13 @@
 import SwiftUI
 
 struct AddExpenseView: View {
-    var expenses: Expenses
-    
     @State private var expenseName = ""
     @State private var expenseType = "Personal"
     @State private var expenseAmount = 0.0
     
     @State private var stepMode = "Add"
     
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss // We don't need to specify its type, because we have used @Environment property wrapper
     
     let expenseTypes = ["Personal", "Business"]
@@ -78,7 +77,8 @@ struct AddExpenseView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        expenses.items.append(ExpenseItem(name: expenseName, type: expenseType, amount: expenseAmount))
+                        let newExpense = Expense(name: expenseName, type: expenseType, amount: expenseAmount)
+                        modelContext.insert(newExpense)
                         dismiss() // This causes the showingAddExpense Boolean in ContentView to go back to false
                     }
                     .disabled(expenseName == "New Expense" || expenseAmount <= 0)
@@ -89,5 +89,5 @@ struct AddExpenseView: View {
 }
 
 #Preview {
-    AddExpenseView(expenses: Expenses())
+    AddExpenseView()
 }

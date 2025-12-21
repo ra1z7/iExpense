@@ -5,46 +5,30 @@
 //  Created by Purnaman Rai (College) on 30/08/2025.
 //
 
+import SwiftData
 import SwiftUI
 
-struct ExpenseItem: Codable, Identifiable {
-    // Swift already includes Codable conformances for the UUID, String, and Double, so it’s able to make ExpenseItem conform automatically as soon as we ask for it.
-    var id = UUID() // However, you will see a warning that 'id' will not be decoded because we made it a constant and assigned a default value. This is actually the behavior we want, but Swift is trying to be helpful because it’s possible you did plan to decode this value from JSON. Fix: make it variable.
-    let name: String
-    let type: String
-    let amount: Double
-}
-
-@Observable
-class Expenses { // we can make this class load and save itself seamlessly later
-    var items: [ExpenseItem] {
-        didSet {
-            if let encodedData = try? JSONEncoder().encode(items) {
-                UserDefaults.standard.set(encodedData, forKey: "Items")
-            }
-        }
-    }
+@Model
+class Expense {
+    var name: String
+    var type: String
+    var amount: Double
     
-    init() {
-        if let savedItems = UserDefaults.standard.data(forKey: "Items") {
-            if let decodedItems = try? JSONDecoder().decode([ExpenseItem].self, from: savedItems) { // if we had just used [ExpenseItem], Swift would want to know what we meant – are we trying to make a copy of the class? Were we planning to reference a static property or method? Did we perhaps mean to create an instance of the class? To avoid confusion – to say that we mean we’re referring to the type itself, known as the type object – we write .self after it.
-                items = decodedItems
-                return
-            }
-        }
-        
-        items = []
+    init(name: String, type: String, amount: Double) {
+        self.name = name
+        self.type = type
+        self.amount = amount
     }
 }
-// now we have a struct to represent a single item of expense, and a class to store an array of all those items.
 
 struct ContentView: View {
-    @State private var expenses = Expenses()
+    @Environment(\.modelContext) private var modelContext
+    @Query private var expenses: [Expense]
     
     var body: some View {
         NavigationStack {
             List {
-                if expenses.items.count > 0 {
+                if expenses.count > 0 {
                     if expensesHasType("Personal") {
                         expenseListView(for: "Personal")
                     }
@@ -58,7 +42,7 @@ struct ContentView: View {
             .navigationTitle("iExpense")
             .toolbar {
                 NavigationLink {
-                    AddExpenseView(expenses: expenses)
+                    AddExpenseView()
                 } label: {
                     Label("Add New Expense", systemImage: "plus")
                 }
@@ -67,7 +51,7 @@ struct ContentView: View {
     }
     
     func expensesHasType(_ expenseType: String) -> Bool {
-        for expense in expenses.items {
+        for expense in expenses {
             if expense.type == expenseType {
                 return true
             }
@@ -78,7 +62,7 @@ struct ContentView: View {
     
     func expenseListView(for expenseType: String) -> some View {
         Section(expenseType) {
-            ForEach(expenses.items) { expense in
+            ForEach(expenses) { expense in
                 if expense.type == expenseType {
                     HStack {
                         Text(expense.name)
@@ -98,7 +82,10 @@ struct ContentView: View {
     }
     
     func removeItems(at offsets: IndexSet) {
-        expenses.items.remove(atOffsets: offsets)
+        for index in offsets {
+            let itemToDelete = expenses[index]
+            modelContext.delete(itemToDelete)
+        }
     }
     
     func getColor(for expenseAmount: Double, asBackground: Bool = false) -> Color {
