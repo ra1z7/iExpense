@@ -24,16 +24,17 @@ class Expense {
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var expenses: [Expense]
+    @State private var sortOrder = [SortDescriptor(\Expense.amount), SortDescriptor(\Expense.name)]
     
     var body: some View {
         NavigationStack {
             List {
                 if expenses.count > 0 {
                     if expensesHasType("Personal") {
-                        expenseListView(for: "Personal")
+                        ExpenseListView(for: "Personal", sortOrder: sortOrder)
                     }
                     if expensesHasType("Business") {
-                        expenseListView(for: "Business")
+                        ExpenseListView(for: "Business", sortOrder: sortOrder)
                     }
                 } else {
                     ContentUnavailableView("No Expenses Yet", systemImage: "text.page.slash", description: Text("Press '+' to add new expenses."))
@@ -45,6 +46,22 @@ struct ContentView: View {
                     AddExpenseView()
                 } label: {
                     Label("Add New Expense", systemImage: "plus")
+                }
+                
+                Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                    Picker("Sort", selection: $sortOrder) {
+                        Text("Sort By Amount")
+                            .tag([
+                                SortDescriptor(\Expense.amount),
+                                SortDescriptor(\Expense.name)
+                            ])
+                        
+                        Text("Sort By Name")
+                            .tag([
+                                SortDescriptor(\Expense.name),
+                                SortDescriptor(\Expense.amount)
+                            ])
+                    }
                 }
             }
         }
@@ -58,52 +75,6 @@ struct ContentView: View {
         }
         
         return false
-    }
-    
-    func expenseListView(for expenseType: String) -> some View {
-        Section(expenseType) {
-            ForEach(expenses) { expense in
-                if expense.type == expenseType {
-                    HStack {
-                        Text(expense.name)
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Text(expense.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                            .foregroundStyle(getColor(for: expense.amount))
-                            .font(.body.bold())
-                    }
-                    .listRowBackground(getColor(for: expense.amount, asBackground: true))
-                }
-            }
-            .onDelete(perform: removeItems)
-        }
-    }
-    
-    func removeItems(at offsets: IndexSet) {
-        for index in offsets {
-            let itemToDelete = expenses[index]
-            modelContext.delete(itemToDelete)
-        }
-    }
-    
-    func getColor(for expenseAmount: Double, asBackground: Bool = false) -> Color {
-        var color: Color
-        
-        if expenseAmount <= 100 {
-            color = .blue
-        } else if expenseAmount <= 1000 {
-            color = .orange
-        } else {
-            color = .red
-        }
-        
-        if asBackground {
-            color = color.opacity(0.05)
-        }
-        
-        return color
     }
 }
 
