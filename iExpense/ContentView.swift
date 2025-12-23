@@ -25,16 +25,19 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var expenses: [Expense]
     @State private var sortOrder = [SortDescriptor(\Expense.amount), SortDescriptor(\Expense.name)]
+    @State private var filterBy = "All"
+    
+    let filterOptions = ["All", "Personal", "Business"]
     
     var body: some View {
         NavigationStack {
             List {
                 if expenses.count > 0 {
                     if expensesHasType("Personal") {
-                        ExpenseListView(for: "Personal", sortOrder: sortOrder)
+                        ExpenseListView(for: "Personal", sortOrder: sortOrder, filterBy: filterBy)
                     }
                     if expensesHasType("Business") {
-                        ExpenseListView(for: "Business", sortOrder: sortOrder)
+                        ExpenseListView(for: "Business", sortOrder: sortOrder, filterBy: filterBy)
                     }
                 } else {
                     ContentUnavailableView("No Expenses Yet", systemImage: "text.page.slash", description: Text("Press '+' to add new expenses."))
@@ -48,7 +51,7 @@ struct ContentView: View {
                     Label("Add New Expense", systemImage: "plus")
                 }
                 
-                Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                Menu("Sort & Filter", systemImage: "arrow.up.arrow.down") {
                     Picker("Sort", selection: $sortOrder) {
                         Text("Sort By Amount")
                             .tag([
@@ -61,6 +64,13 @@ struct ContentView: View {
                                 SortDescriptor(\Expense.name),
                                 SortDescriptor(\Expense.amount)
                             ])
+                    }
+                    
+                    Picker("Filter", selection: $filterBy) {
+                        ForEach(filterOptions, id: \.self) {
+                            Text("Filter By \($0)")
+                                .tag($0)
+                        }
                     }
                 }
             }

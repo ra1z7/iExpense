@@ -60,12 +60,23 @@ struct ExpenseListView: View {
         }
     }
     
-    init(for expenseType: String, sortOrder: [SortDescriptor<Expense>]) {
+    init(for expenseType: String, sortOrder: [SortDescriptor<Expense>], filterBy: String) {
         self.expenseType = expenseType
-        _expenses = Query(sort: sortOrder)
+        _expenses = Query(
+            filter: #Predicate<Expense> { expense in
+                if filterBy == "All" {
+                    return true
+                } else if filterBy == expense.type {
+                    return true
+                } else {
+                    return false
+                }
+            },
+            sort: sortOrder
+        )
     }
 }
 
 #Preview {
-    ExpenseListView(for: "Personal", sortOrder: [SortDescriptor(\Expense.name)])
+    ExpenseListView(for: "Personal", sortOrder: [SortDescriptor(\Expense.name)], filterBy: "All")
 }
