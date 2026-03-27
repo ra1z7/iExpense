@@ -41,6 +41,7 @@ struct ContentView: View {
                     }
                 } else {
                     ContentUnavailableView("No Expenses Yet", systemImage: "text.page.slash", description: Text("Press '+' to add new expenses."))
+                        .accessibilityElement(children: .combine)
                 }
             }
             .navigationTitle("iExpense")

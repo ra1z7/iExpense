@@ -29,6 +29,9 @@ struct ExpenseListView: View {
                             .font(.body.bold())
                     }
                     .listRowBackground(getColor(for: expense.amount, asBackground: true))
+                    .accessibilityElement()
+                    .accessibilityLabel("\(expense.name), \(expense.amount.formatted(.currency(code: Locale.current.currency?.identifier ?? "USD")))")
+                    .accessibilityHint(expense.type)
                 }
             }
             .onDelete(perform: removeItems)
